@@ -1,0 +1,27 @@
+{
+  "name": "excel",
+  "version": "1.0.0",
+  "description": "return a buffer that can be read by microsoft excel",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "empty"
+  },
+  "keywords": [
+    "excel",
+    "table",
+    "node"
+  ],
+  "author": "Daniel",
+  "license": "ISC",
+  "dependencies": {
+    "encoding": "~0.1.12"
+  },
+  "devDependencies": {
+    "mocha": "^3.4.2",
+    "chai":"^4.1.0"
+  }
+}
