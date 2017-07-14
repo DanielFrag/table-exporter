@@ -4,11 +4,11 @@
   "description": "return a buffer that can be read by microsoft excel",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "mocha -R spec"
   },
   "repository": {
     "type": "git",
-    "url": "empty"
+    "url": "https://github.com/DanielFrag/table-exporter.git"
   },
   "keywords": [
     "excel",

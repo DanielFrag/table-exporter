@@ -2,6 +2,9 @@ const encoding = require('encoding');
 const iconvLite = require('iconv-lite');
 class TableExport {
     constructor(encode, delimiter, separator, newLine, bom) {
+        if (!(typeof encode == 'string')) {
+            encode = 'utf16-le';
+        }
         this.encode = iconvLite.encodingExists(encode)? encode: 'utf16-le';
         this.delimiter = delimiter || '\"';
         this.separator = separator || ';';
@@ -42,24 +45,32 @@ class TableExport {
             throw 'Array of objects expected';
         }
     }
+    exportTableBufferMappingObjectsToColumns(objectArray) {
+        try {
+            const arrayKeys = [];
+            let previousObj = objectArray[0];
+            let previousObjKeys = Object.keys(previousObj);
+            objectArray.forEach(obj => {
+                const currentObjKeys = Object.keys(obj);
+                arrayKeys.push(currentObjKeys);
+                if (previousObjKeys.length < currentObjKeys.length) {
+                    previousObj = obj;
+                }
+            });
+            const yMaxSize = previousObjKeys.length;
+            const xMaxSize = objectArray.length;
+            const columnObjArray = []
+            for (let i = 0; i < yMaxSize; i++) {
+                const obj = {};
+                for (let j = 0; j < xMaxSize; j++) {
+                    const data = objectArray[j][i]? objectArray[j][i]: '';
+                    obj[i + '_' + j ] = data;
+                }
+                columnObjArray.push(obj);
+            }
+            return this.exportTableBufferMappingObjectsToLines(columnObjArray);
+        } catch(e) {
+            throw 'Array of objects expected';
+        }
+    }
 }
-
-/*
-function toExcelBuffer(data, header) {
-    const delimiter = '\"';
-    const separator = ';';
-    const newLine = '\n';
-    const bom = new Buffer([0xff, 0xfe]);
-    const headerText = Object
-        .keys(header)
-        .map(key => delimiter + header[key] + delimiter)
-        .join(separator);
-    const tableArray = [headerText];
-    data.map(item => tableArray.push(Object.keys(item).map(key => delimiter + item[key] + delimiter).join(separator)));
-    const tableStr = tableArray.reduce((str, strLine) => {
-        return str + newLine + strLine;
-    });
-    const buffer = encoding.convert(tableStr, 'utf16-le');
-    return Buffer.concat([bom, buffer]);
-}
-*/
