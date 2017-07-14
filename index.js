@@ -2,14 +2,19 @@ const encoding = require('encoding');
 const iconvLite = require('iconv-lite');
 class TableExport {
     constructor(encode, delimiter, separator, newLine, bom) {
-        if (!(typeof encode == 'string')) {
+        if (!encode) {
             encode = 'utf16-le';
+        } else if (!(typeof encode == 'string' && iconvLite.encodingExists(encode))) {
+            throw 'Error, check the suported encoding in iconv-lite';
         }
-        this.encode = iconvLite.encodingExists(encode)? encode: 'utf16-le';
+        this.encode = encode;
         this.delimiter = delimiter || '\"';
         this.separator = separator || ';';
         this.newLine = newLine || '\n';
-        this.bom = bom instanceof Buffer? bom: new Buffer([0xff, 0xfe]);
+        this.bom = undefined;
+        if (bom) {
+            this.bom = bom instanceof Buffer? bom: new Buffer([0xff, 0xfe]);
+        }
     }
     static convertObjectToStringLine(obj, delimiter, separator) {
         try {
@@ -21,7 +26,7 @@ class TableExport {
                 .map(key => delimiter + obj[key] + delimiter)
                 .join(separator? separator: '');
         } catch(e) {
-            throw 'the type of obj must be an object';
+            throw 'Convert object to string line error: ' + e;
         }
     }
     exportTableStringMappingObjectsToLines(objectArray) {
@@ -33,19 +38,10 @@ class TableExport {
                 return srtTable + this.newLine + strLine;
             });
         } catch(e) {
-            throw 'Array of objects expected';
+            throw 'String mapping objects to lines error: ' + e;
         }
     }
-    exportTableBufferMappingObjectsToLines(objectArray) {
-        try {
-            const tableString = this.exportTableStringMappingObjectsToLines(objectArray);
-            const buffer = encoding.convert(tableString, this.encode);
-            return Buffer.concat([this.bom, buffer]);
-        } catch(e) {
-            throw 'Array of objects expected';
-        }
-    }
-    exportTableBufferMappingObjectsToColumns(objectArray) {
+    exportTableStringMappingObjectsToColumns(objectArray) {
         try {
             const arrayKeys = [];
             let previousObj = objectArray[0];
@@ -63,14 +59,44 @@ class TableExport {
             for (let i = 0; i < yMaxSize; i++) {
                 const obj = {};
                 for (let j = 0; j < xMaxSize; j++) {
-                    const data = objectArray[j][i]? objectArray[j][i]: '';
+                    const data = objectArray[j][arrayKeys[j][i]]? objectArray[j][arrayKeys[j][i]]: '';
                     obj[i + '_' + j ] = data;
                 }
                 columnObjArray.push(obj);
             }
-            return this.exportTableBufferMappingObjectsToLines(columnObjArray);
+            return this.exportTableStringMappingObjectsToLines(columnObjArray);
         } catch(e) {
-            throw 'Array of objects expected';
+            throw 'String mapping objects to columns error: ' + e;
+        }
+    }
+    exportTableBufferMappingObjectsToLines(objectArray) {
+        try {
+            const tableString = this.exportTableStringMappingObjectsToLines(objectArray);
+            return TableExport.exportStringToEncodedBuffer(tableString);
+        } catch(e) {
+            throw 'Buffer mapping objects to lines error: ' + e;
+        }
+    }
+    exportTableBufferMappingObjectsToColumns(objectArray) {
+        try {
+            const tableString = this.exportTableStringMappingObjectsToColumns(objectArray);
+            return TableExport.exportStringToEncodedBuffer(tableString);
+        } catch(e) {
+            throw 'Buffer mapping objects to columns error: ' + e;
+        }
+    }
+    static exportStringToEncodedBuffer(str) {
+        try {
+            const buffer = encoding.convert(str, this.encode);
+            if (this.bom) {
+                return Buffer.concat([this.bom, buffer]);
+            } else {
+                return buffer;
+            }
+        } catch(e) {
+            throw 'Export string to encoded buffer error: ' + e;
         }
     }
 }
+
+module.exports = TableExport;

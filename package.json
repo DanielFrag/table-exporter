@@ -1,7 +1,7 @@
 {
   "name": "excel",
   "version": "1.0.0",
-  "description": "return a buffer that can be read by microsoft excel",
+  "description": "Arrange all the values from an array of objects in a string/buffer (BOM is opitional) that use a specific encode and characters to organize the data.",
   "main": "index.js",
   "scripts": {
     "test": "mocha -R spec"
@@ -13,7 +13,8 @@
   "keywords": [
     "excel",
     "table",
-    "node"
+    "csv",
+    "bom"
   ],
   "author": "Daniel",
   "license": "ISC",
