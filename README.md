@@ -1,86 +1,175 @@
-Synopsis
+## Synopsis
 
-A module for Nodejs that arrange all the object's values from an array of objects in a string/buffer (BOM is opitional) that use a specific encode and characters to organize the data.
-In development.
+A module for Nodejs that exports the class TableExports. This class's objects can arrange all the object's values, from an array of objects, in a string/buffer (BOM is opitional). The resulting string/buffer uses a specific encode and marks to organize the data. The default marks are:
 
-Code Example
+* separator (;)
+* delimiter (")
+* new line (\n)
+
+For the suported encode check the [iconv-lite](https://github.com/ashtuchkin/iconv-lite) page. The default encode is utf16-le.
+
+If a byte order mark (BOM) is provided, it will be check and concatenated in the buffer export result (BOM + result). If the check fail the value ([0xff, 0xfe]) will be used.    
+
+More information on code examples.
+
+## Code Example
 
 Instantiate a TableExport object
 
-const TableExport = require('<use the relative path for the index file>');
-//use the default values for the special characters, encode and no byte order mark (BOM)
-const tableExport = new TableExport();
-//special characters:
-//tableExport.separator = ';'
-//tableExport.delimiter = '\"'
-//tableExport.encode = 'utf16-le'
+* require the module
 
-//use custom values for the special characters, encode and a specific byte order mark (BOM)
-const encode = 'utf8';
-const delimiter = '-';
-const separator = '_';
-const newLine = '@';
-const buffer = new Buffer([0xfe, 0xff]);
-const customTableExport = new TableExport(encode, delimiter, separator, newLine, buffer);
+        const TableExport = require('<use the relative path for the index file>');
 
-//use the default values for the special characters, encode and a specific byte order mark (BOM)
-const tableExportWithBom = new TableExport('', '', '', '', buffer);
+* using the default values for marks, encode and no byte order mark (BOM)
+        
+        const tableExport = new TableExport();
+
+* using custom values for the special characters, encode and a specific byte order mark (BOM)
+    
+        const encode = 'utf8';
+        const delimiter = '-';
+        const separator = '_';
+        const newLine = '@';
+        const bom = new Buffer([0xfe, 0xff]);
+        const customTableExport = new TableExport({
+            encode,
+            delimiter,
+            separator,
+            newLine,
+            bom
+        });
+
+* using the default values for the special characters, encode and a specific byte order mark (BOM)
+        
+        const tableExportWithBom = new TableExport({
+            bom: new Buffer([0xfe, 0xff])
+        });
 
 
-Convert a array of objects in a csv file
+Converting an array of objects in a csv file
 
-const objArr = [{
-  l1c1: 'l1c1',
-  l1c2: 'l1c2',
-  l1c3: 'l1c3'
-}, {
-  l2c1: 'l2c1',
-  l2c2: 'l2c2'
-}, {
-  l3c1: 'l3c1',
-  l3c2: 'l3c2',
-  l3c3: 'l3c3'
-}];
-const  buffer = tableExportWithBom.exportTableBufferMappingObjectsToLines(objArr);
-/*
-To send it in the response (res)
-res.writeHead(200, {
-    'Content-Type': 'text/csv; charset=utf-16le; header=present;',
-    'Content-Disposition': 'attachment; filename=report.csv'
-});
-res.write(buffer);
-return res.end();
-*/
+* set the array to convert when instantiate the TableExport object
 
-Motivation
+        const tableExport = new TableExport({
+            tableData: [{
+                column1: 'obj1key1',
+                column2: 'obj1key2',
+                column3: 'obj1key3',
+                column4: 'obj1key4',
+                column5: 'obj1key5'
+            }, {
+                column1: 'obj2key1',
+                column2: 'obj2key2',
+                column3: 'obj2key3'
+            }, {
+                column1: 'obj3key1',
+                column2: 'obj3key2',
+                column3: 'obj3key3',
+                column4: 'obj3key4'
+            }];
+        });
 
-This module was written to export a csv file with a specific encode that can be read in excel.
+* set the array to convert to an instantiace of TableExport
 
-Tests
+        const tableExport = new TableExport();
+        tableExport.setTableData([{
+            column1: 'obj1key1'
+        }, {
+            column1: 'obj2key1',
+            column2: 'obj2key2',
+            column3: 'obj2key3'
+        }, {
+            column1: 'obj3key1',
+            column2: 'obj3key2'
+        }]);
 
-To run the test file first install the dependencies, then run npm test:
-$ npm i
-$ npm test '.\test\main.js'
+* push data to an instantiace of TableExport
 
-License
+        const tableExport = new TableExport({
+            tableData: [{
+                column1: 'obj1key1',
+                column2: 'obj1key2',
+                column3: 'obj1key3',
+                column4: 'obj1key4',
+                column5: 'obj1key5'
+            }, {
+                column1: 'obj2key1',
+                column2: 'obj2key2',
+                column3: 'obj2key3'
+            }, {
+                column1: 'obj3key1',
+                column2: 'obj3key2',
+                column3: 'obj3key3',
+                column4: 'obj3key4'
+            }];
+        });
+        tableExport.appendObjectsToTableData([{
+            column1: 'obj4key1'
+        }, {
+            column1: 'obj5key1',
+            column2: 'obj5key2',
+            column3: 'obj5key3'
+        }, {
+            column1: 'obj6key1',
+            column2: 'obj6key2'
+        }]);
 
-The MIT License (MIT)
+* mapping objects to tables
 
-Copyright (c) 2017 Daniel Marcos Fragoso de Souza <danielmarcos2@yahoo.com.br>
+        const tableExport = new TableExport({
+            tableData: [{
+                column1: 'obj1key1',
+                column2: 'obj1key2'
+            }, {
+                column1: 'obj2key1',
+                column2: 'obj2key2'
+            }]
+        });
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+        //strings
+        const tableLineStr = tableExport.stringMapObjectsToLines();
+        //'"obj1key1";"obj1key2"\n"obj2key1";"obj2key2"'
+        const tableColumnStr = tableExport.stringMapObjectsToColumns();
+        //'"obj1key1";"obj2key1"\n"obj1key2";"obj2key2"'
+        
+        //buffers
+        const tableLineBuffer = tableExport.bufferMapObjectsToLines();
+        const tableColumnBuffer = tableExport.bufferMapObjectsToColumns();
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+* using a controller to send a csv file that can be read by excel (in excel, set the comma as separator)
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        const controller = (req, res) => {
+            const tableExport = new TableExport({
+                tableData: [{
+                    column1: 'obj1key1',
+                    column2: 'obj1key2'
+                }, {
+                    column1: 'obj2key1',
+                    column2: 'obj2key2'
+                }],
+                bom: new Buffer([0xff, 0xfe])
+            });
+            res.writeHead(200, {
+                'Content-Type': 'text/csv; charset=utf-16le; header=present;',
+                'Content-Disposition': 'attachment; filename=report.csv'
+            });
+            const buffer = tableExport.bufferMapObjectsToLines()
+            res.write(buffer);
+            return res.end();
+        }
+
+
+## Motivation
+
+This module was written to export a csv file with a specific encode that can be read by excel.
+
+## Tests
+
+To run the test file first install the dependencies, then run npm test.
+    
+    $ npm i
+    $ npm test './test/main.js'
+
+## License
+
+[MIT](https://github.com/DanielFrag/table-exporter/blob/master/LICENSE)

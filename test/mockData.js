@@ -1,20 +1,20 @@
 module.exports = {
     data: [{
-        line1: 'line1',
-        line2: 'line2',
-        line3: 'line3',
-        line4: 'line4',
-        line5: 'line5'
+        line1: 'obj1key1',
+        line2: 'obj1key2',
+        line3: 'obj1key3',
+        line4: 'obj1key4',
+        line5: 'obj1key5'
     }, {
-        line1: 'line1',
-        line2: 'line2',
-        line3: 'line3'
+        line1: 'obj2key1',
+        line2: 'obj2key2',
+        line3: 'obj2key3'
     }, {
-        line1: 'line1',
-        line2: 'line2',
-        line3: 'line3',
-        line4: 'line4'
+        line1: 'obj3key1',
+        line2: 'obj3key2',
+        line3: 'obj3key3',
+        line4: 'obj3key4'
     }],
-    lineString: '"line1";"line2";"line3";"line4";"line5"\n"line1";"line2";"line3"\n"line1";"line2";"line3";"line4"',
-    columnString: '"line1";"line1";"line1"\n"line2";"line2";"line2"\n"line3";"line3";"line3"\n"line4";"";"line4"\n"line5";"";""'
+    lineString: '"obj1key1";"obj1key2";"obj1key3";"obj1key4";"obj1key5"\n"obj2key1";"obj2key2";"obj2key3"\n"obj3key1";"obj3key2";"obj3key3";"obj3key4"',
+    columnString: '"obj1key1";"obj2key1";"obj3key1"\n"obj1key2";"obj2key2";"obj3key2"\n"obj1key3";"obj2key3";"obj3key3"\n"obj1key4";"";"obj3key4"\n"obj1key5";"";""'
 };
