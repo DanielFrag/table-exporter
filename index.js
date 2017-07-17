@@ -2,11 +2,22 @@ const encoding = require('encoding');
 const iconvLite = require('iconv-lite');
 
 class TableExport {
+    /**
+    * Instantiate a TableExport object
+    * @param {Object} config
+    * @return {Object}
+    */
     constructor(config) {
         const tableSettings = {};
+        /**
+         * @return {string}
+         */
         this.getEncode = () => {
             return tableSettings.encode;
         };
+        /**
+         * @param {string} encode
+         */
         this.setEncode = (encode) => {
             if (!(typeof encode == 'string' && iconvLite.encodingExists(encode))) {
                 throw 'Error, check the suported encoding in iconv-lite';
@@ -14,9 +25,11 @@ class TableExport {
                 tableSettings.encode = encode;
             }
         };
-        this.getDelimiter = () => {
-            return tableSettings.delimiter;
-        };
+        /**
+         * @param {string} delimiter
+         * @param {string} separator
+         * @param {string} newLine
+         */
         this.setSpecialMarks = (delimiter, separator, newLine) => {
             if (typeof delimiter != 'string' || typeof separator != 'string' || typeof newLine != 'string') {
                 throw 'the typeof delimiter, separator and newLine must be string';
@@ -25,6 +38,10 @@ class TableExport {
             tableSettings.separator = separator;
             tableSettings.newLine = newLine;
         };
+        /**
+         * Get the special marks used to encapsulate the set of values 
+         * @return {Object}
+         */
         this.getSpecialMarks = () => {
             return {
                 delimiter: tableSettings.delimiter,
@@ -32,30 +49,43 @@ class TableExport {
                 newLine: tableSettings.newLine
             }
         };
+        /**
+         * @param {Array} arrayOfObjects
+         */
         this.setTableData = (arrayOfObjects) => {
-            if (TableExport.isArrayOfObjects(arrayOfObjects)) {
-                tableSettings.tableData = arrayOfObjects;
-            } else {
+            if (!TableExport.isArrayOfObjects(arrayOfObjects)) {
                 throw 'Expected an array of objects';
             }
+            tableSettings.tableData = [];
+            tableSettings.tableData.push(...arrayOfObjects);
         };
+        /**
+         * @param {Array} arrayOfObjects
+         */
         this.appendObjectsToTableData = (arrayOfObjects) => {
-            if (TableExport.isArrayOfObjects(arrayOfObjects)) {
-                tableSettings.tableData.push(...arrayOfObjects);
-            } else {
+            if (!TableExport.isArrayOfObjects(arrayOfObjects)) {
                 throw 'Append expected an array of objects';
             }
-
+            tableSettings.tableData.push(...arrayOfObjects);
         };
+        /**
+         * @return {Array}
+         */
         this.getTableData = () => {
             return tableSettings.tableData;
         };
+        /**
+         * @param {Buffer} bom
+         */
         this.setBOM = (bom) => {
             if (!(bom instanceof Buffer)) {
                 throw 'Expected an instance of Buffer';
             }
             tableSettings.bom = bom;
         }
+        /**
+         * @return {Buffer}
+         */
         this.getBOM = () => {
             return tableSettings.bom;
         };
@@ -82,6 +112,11 @@ class TableExport {
             });
         }
     }
+    /**
+     * Check if the arrayOfObjects is an array of objects
+     * @param {any} arrayOfObjects
+     * @return {boolean}
+     */
     static isArrayOfObjects(arrayOfObjects) {
         if (!Array.isArray(arrayOfObjects) || !arrayOfObjects[0]) {
             return false;
@@ -93,6 +128,13 @@ class TableExport {
         });
         return true;
     }
+    /**
+     * Arrange the object's values in a string, using a delimiter to encapsulate values and the separator to detach them
+     * @param {Object} obj
+     * @param {string} delimiter
+     * @param {string} separator
+     * @return {string} 
+     */
     static objectToTableLine(obj, delimiter, separator) {
         try {
             if (!typeof delimiter == 'string' || !typeof separator == 'string') {
@@ -106,6 +148,14 @@ class TableExport {
             throw 'Convert object to table line error: ' + e;
         }
     }
+    /**
+     * Generate a string that use special marks to encapsulate the objects and their values.
+     * The specialMarks must contain the following propoerties: delimiter, separator and newLine.
+     * Each one must be a different string.
+     * @param {Array} arrayOfObjects
+     * @param {Object} specialMarks
+     * @return {string}
+     */
     static generateTableString(arrayOfObjects, specialMarks) {
         try {
             const strArray = arrayOfObjects.map(obj => {
@@ -118,8 +168,18 @@ class TableExport {
             throw 'Generate table error: ' + e;
         }
     }
+    /**
+     * Encode the given string in a buffer and, if provided, set the byte mark order (BOM)
+     * @param {string} str
+     * @param {string} encode
+     * @param {Buffer} bom
+     * @return {Buffer}
+     */
     static exportStringToEncodedBuffer(str, encode, bom) {
         try {
+            if (!iconvLite.encodingExists(encode)) {
+                throw 'Encode is not suported';
+            }
             const buffer = encoding.convert(str, encode);
             if (bom) {
                 return Buffer.concat([bom, buffer]);
@@ -130,6 +190,10 @@ class TableExport {
             throw 'Export string to encoded buffer error: ' + e;
         }
     }
+    /**
+     * Arrange the data storaged in a string, that use special marks to encapsulate the values of the objects by object.
+     * @return {string}
+     */
     stringMapObjectsToLines() {
         try {
             const specialMarks = this.getSpecialMarks();
@@ -139,6 +203,10 @@ class TableExport {
             throw 'String mapping objects to lines error: ' + e;
         }
     }
+    /**
+     * Arrange the data storaged in a string, that use special marks to encapsulate the values of the objects by his position in the object.
+     * @return {string}
+     */
     stringMapObjectsToColumns() {
         try {
             const tableData = this.getTableData(); 
@@ -168,18 +236,26 @@ class TableExport {
             throw 'String mapping objects to columns error: ' + e;
         }
     }
+    /**
+     * Arrange the data storaged in a string, that use special marks to encapsulate the values of the objects by object order.
+     * @return {Buffer}
+     */
     bufferMapObjectsToLines() {
         try {
             const tableString = this.stringMapObjectsToLines(this.getTableData());
-            return this.exportStringToEncodedBuffer(tableString, this.getEncode(), this.getBOM());
+            return TableExport.exportStringToEncodedBuffer(tableString, this.getEncode(), this.getBOM());
         } catch(e) {
             throw 'Buffer mapping objects to lines error: ' + e;
         }
     }
-    bufferMapObjectsToColumns(arrayOfObjects) {
+    /**
+     * Arrange the data storaged in a string, that use special marks to encapsulate the values of the objects by his position in the object.
+     * @return {Buffer}
+     */
+    bufferMapObjectsToColumns() {
         try {
             const tableString = this.stringMapObjectsToColumns(this.getTableData());
-            return this.exportStringToEncodedBuffer(tableString, this.getEncode(), this.getBOM());
+            return TableExport.exportStringToEncodedBuffer(tableString, this.getEncode(), this.getBOM());
         } catch(e) {
             throw 'Buffer mapping objects to columns error: ' + e;
         }
